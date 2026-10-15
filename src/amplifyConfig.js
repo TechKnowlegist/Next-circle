@@ -24,9 +24,9 @@
 export const amplifyConfig = {
   Auth: {
     Cognito: {
-      userPoolId: 'us-east-1_VEYbEth4g',
-      userPoolClientId: '5269d81gnu8skf49c854ho6pb5',
-      identityPoolId: 'us-east-1:6883c9e9-f661-4604-a719-b95be82884d2',
+      userPoolId: 'us-east-1_0FhWeYtH3',
+      userPoolClientId: '23stslhjc75cfe8fnv9kbeknd5',
+      identityPoolId: 'us-east-1:a5730522-b148-44a0-bce9-3c8c00485426',
       loginWith: {
         email: true,
       },
@@ -34,7 +34,7 @@ export const amplifyConfig = {
   },
   API: {
     GraphQL: {
-      endpoint: 'https://lrug6qpknrb7hhdho5x3gypiuq.appsync-api.us-east-1.amazonaws.com/graphql',
+      endpoint: 'https://3e3ahgblh5gonpgqt5t24tmjfy.appsync-api.us-east-1.amazonaws.com/graphql',
       region: 'us-east-1',
       defaultAuthMode: 'userPool',
     },
