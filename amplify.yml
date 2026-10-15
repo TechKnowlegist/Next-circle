@@ -1,0 +1,22 @@
+version: 1
+# Next Circle is a plain static frontend — no amplify/ backend folder here
+# at all, it points at Nextlayer3D's existing shared Cognito/AppSync
+# backend instead (see src/amplifyConfig.js). The Amplify Console's default
+# build spec for a detected Amplify Gen2 project adds a `backend:` phase
+# that runs `npx ampx pipeline-deploy`, which has nothing to deploy here
+# and just fails the build — deliberately left out below.
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
