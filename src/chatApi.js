@@ -27,7 +27,7 @@ function randomInviteCode() {
 const LIST_MY_MEMBERSHIPS = /* GraphQL */ `
   query ListMyMemberships($filter: ModelChatServerMemberFilterInput) {
     listChatServerMembers(filter: $filter, limit: 500) {
-      items { id serverId userId userName createdAt }
+      items { id serverId userId userName lastSeenAt createdAt }
     }
   }
 `
@@ -61,8 +61,38 @@ const CREATE_MEMBERSHIP = /* GraphQL */ `
 const LIST_SERVER_MEMBERS = /* GraphQL */ `
   query ListServerMembers($filter: ModelChatServerMemberFilterInput) {
     listChatServerMembers(filter: $filter, limit: 500) {
-      items { id serverId userId userName createdAt }
+      items { id serverId userId userName lastSeenAt createdAt }
     }
+  }
+`
+
+const UPDATE_SERVER = /* GraphQL */ `
+  mutation UpdateChatServer($input: UpdateChatServerInput!) {
+    updateChatServer(input: $input) { id name ownerId ownerName inviteCode iconEmoji createdAt }
+  }
+`
+
+const DELETE_SERVER = /* GraphQL */ `
+  mutation DeleteChatServer($input: DeleteChatServerInput!) {
+    deleteChatServer(input: $input) { id }
+  }
+`
+
+const DELETE_MEMBERSHIP = /* GraphQL */ `
+  mutation DeleteChatServerMember($input: DeleteChatServerMemberInput!) {
+    deleteChatServerMember(input: $input) { id }
+  }
+`
+
+const UPDATE_MEMBERSHIP_HEARTBEAT = /* GraphQL */ `
+  mutation UpdateChatServerMemberHeartbeat($input: UpdateChatServerMemberInput!) {
+    updateChatServerMember(input: $input) { id lastSeenAt }
+  }
+`
+
+const DELETE_CHANNEL = /* GraphQL */ `
+  mutation DeleteChatChannel($input: DeleteChatChannelInput!) {
+    deleteChatChannel(input: $input) { id }
   }
 `
 
@@ -123,6 +153,56 @@ export async function listServerMembers(serverId) {
   return res.data?.listChatServerMembers?.items || []
 }
 
+export async function renameServer(id, name) {
+  const res = await client.graphql({ query: UPDATE_SERVER, variables: { input: { id, name } } })
+  return res.data?.updateChatServer
+}
+
+// Removes one membership row — used for both "kick" (server owner acting
+// on someone else's row) and "leave" (a member acting on their own); the
+// API doesn't distinguish the two, see the authorization note on
+// ChatServerMember in amplify/data/resource.ts.
+export async function removeMembership(membershipId) {
+  await client.graphql({ query: DELETE_MEMBERSHIP, variables: { input: { id: membershipId } } })
+}
+
+// Deletes a server along with its channels and memberships. Message rows
+// in those channels are deliberately left behind (orphaned, never shown
+// again since the channel is gone) rather than walked and deleted one by
+// one — same accepted tradeoff as the rest of this schema's "won't be
+// huge, don't over-engineer" posture.
+export async function deleteServerCascade(serverId) {
+  const [channels, members] = await Promise.all([listChannels(serverId), listServerMembers(serverId)])
+  await Promise.all(channels.map((c) => client.graphql({ query: DELETE_CHANNEL, variables: { input: { id: c.id } } })))
+  await Promise.all(members.map((m) => removeMembership(m.id)))
+  await client.graphql({ query: DELETE_SERVER, variables: { input: { id: serverId } } })
+}
+
+// Touches lastSeenAt on every server membership the user has, so they
+// show as online in each of those servers' member lists. Call this on an
+// interval (see useHeartbeat.js) while the app is open and focused.
+export async function heartbeatPresence(userId) {
+  const res = await client.graphql({
+    query: LIST_MY_MEMBERSHIPS,
+    variables: { filter: { userId: { eq: userId } } },
+  })
+  const memberships = res.data?.listChatServerMembers?.items || []
+  const now = new Date().toISOString()
+  await Promise.all(
+    memberships.map((m) =>
+      client.graphql({ query: UPDATE_MEMBERSHIP_HEARTBEAT, variables: { input: { id: m.id, lastSeenAt: now } } })
+    )
+  )
+}
+
+// "Online" is approximate — true if a heartbeat landed in the last 60s.
+// A just-closed tab reads as online for up to that window since there's
+// no reliable sign-off on tab close.
+export function isOnline(member) {
+  if (!member?.lastSeenAt) return false
+  return Date.now() - new Date(member.lastSeenAt).getTime() < 60_000
+}
+
 // ---- Channels ----
 
 const LIST_CHANNELS = /* GraphQL */ `
@@ -161,7 +241,7 @@ export async function createChannel(serverId, name, position = 0) {
 const LIST_MESSAGES = /* GraphQL */ `
   query ListChatMessages($filter: ModelChatMessageFilterInput) {
     listChatMessages(filter: $filter, limit: 200) {
-      items { id conversationId authorId authorName content createdAt }
+      items { id conversationId authorId authorName content edited createdAt }
     }
   }
 `
@@ -169,15 +249,29 @@ const LIST_MESSAGES = /* GraphQL */ `
 const CREATE_MESSAGE = /* GraphQL */ `
   mutation CreateChatMessage($input: CreateChatMessageInput!) {
     createChatMessage(input: $input) {
-      id conversationId authorId authorName content createdAt
+      id conversationId authorId authorName content edited createdAt
     }
+  }
+`
+
+const UPDATE_MESSAGE = /* GraphQL */ `
+  mutation UpdateChatMessage($input: UpdateChatMessageInput!) {
+    updateChatMessage(input: $input) {
+      id conversationId authorId authorName content edited createdAt
+    }
+  }
+`
+
+const DELETE_MESSAGE = /* GraphQL */ `
+  mutation DeleteChatMessage($input: DeleteChatMessageInput!) {
+    deleteChatMessage(input: $input) { id }
   }
 `
 
 const ON_CREATE_MESSAGE = /* GraphQL */ `
   subscription OnCreateChatMessage {
     onCreateChatMessage {
-      id conversationId authorId authorName content createdAt
+      id conversationId authorId authorName content edited createdAt
     }
   }
 `
@@ -197,6 +291,22 @@ export async function postMessage(conversationId, authorId, authorName, content)
     variables: { input: { conversationId, authorId, authorName, content } },
   })
   return res.data?.createChatMessage
+}
+
+export async function updateMessage(id, content) {
+  const res = await client.graphql({
+    query: UPDATE_MESSAGE,
+    variables: { input: { id, content, edited: true } },
+  })
+  return res.data?.updateChatMessage
+}
+
+// No onDelete subscription wired up (this schema doesn't need one for
+// anything else yet) — the deleter's own view removes it immediately,
+// other open viewers only see it gone on their next load of that
+// conversation. Good enough for v1, not real-time for everyone.
+export async function deleteMessage(id) {
+  await client.graphql({ query: DELETE_MESSAGE, variables: { input: { id } } })
 }
 
 // Live new-message feed, site-wide — the subscription itself has no

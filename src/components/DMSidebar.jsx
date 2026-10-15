@@ -1,3 +1,5 @@
+import InitialsAvatar from './InitialsAvatar.jsx'
+
 export default function DMSidebar({ threads, selectedThreadId, onSelectThread, myUserId }) {
   return (
     <div className="nc-sidebar">
@@ -20,7 +22,8 @@ export default function DMSidebar({ threads, selectedThreadId, onSelectThread, m
               className={selectedThreadId === t.id ? 'nc-channel active' : 'nc-channel'}
               onClick={() => onSelectThread(t.id, otherName)}
             >
-              @ {otherName}
+              <InitialsAvatar name={otherName} size={20} />
+              {otherName}
             </button>
           )
         })}

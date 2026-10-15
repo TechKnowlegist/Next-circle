@@ -155,10 +155,32 @@
 
 .nc-sidebar-header {
   margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 .nc-sidebar-header h2 {
   font-size: 1.1rem;
-  margin-bottom: 6px;
+}
+.nc-renamable {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+.nc-renamable:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.nc-rename-input {
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--accent-2);
+  background: var(--surface);
+  color: white;
 }
 
 .nc-invite-btn {
@@ -173,6 +195,15 @@
 .nc-invite-btn:hover {
   border-color: var(--accent-2);
   color: white;
+}
+
+.nc-danger {
+  color: #f87171 !important;
+  padding: 0 !important;
+  font-size: 0.78rem !important;
+}
+.nc-danger:hover {
+  color: #fca5a5 !important;
 }
 
 .nc-sidebar-label {
@@ -228,12 +259,63 @@
   opacity: 0.6;
 }
 
+.nc-member-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.nc-member-row .nc-member {
+  flex: 1;
+  min-width: 0;
+}
+.nc-member-row .nc-member > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nc-kick-btn {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.nc-member-row:hover .nc-kick-btn {
+  display: flex;
+}
+.nc-kick-btn:hover {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
 .nc-member-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent-1);
+  background: rgba(255, 255, 255, 0.25);
   flex-shrink: 0;
+}
+.nc-member-dot.online {
+  background: var(--accent-1);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.nc-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: white;
 }
 
 .nc-new-channel input {
@@ -317,10 +399,17 @@
 
 .nc-message {
   max-width: 70%;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
 }
 .nc-message-own {
   align-self: flex-end;
-  text-align: right;
+  flex-direction: row-reverse;
+}
+
+.nc-message-body {
+  min-width: 0;
 }
 
 .nc-message-meta {
@@ -344,6 +433,14 @@
   color: rgba(255, 255, 255, 0.35);
 }
 
+.nc-message-edited {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.3);
+  background: none;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
 .nc-message-content {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
@@ -357,6 +454,42 @@
 }
 .nc-message-own .nc-message-content {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(56, 189, 248, 0.25));
+}
+
+.nc-message-edit-input {
+  width: 100%;
+  min-width: 220px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-2);
+  background: var(--surface);
+  color: white;
+  font-size: 0.92rem;
+}
+
+.nc-message-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 3px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.nc-message:hover .nc-message-actions {
+  opacity: 1;
+}
+.nc-message-own .nc-message-actions {
+  justify-content: flex-end;
+}
+.nc-message-actions button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+}
+.nc-message-actions button:hover {
+  color: var(--accent-2);
 }
 
 .nc-composer {

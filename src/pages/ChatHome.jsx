@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import { createServer, getOrCreateDMThread, joinServerByInviteCode, listMyDMThreads, listMyServers } from '../chatApi.js'
+import { useHeartbeat } from '../useHeartbeat.js'
 import ServerRail from '../components/ServerRail.jsx'
 import ServerSidebar from '../components/ServerSidebar.jsx'
 import DMSidebar from '../components/DMSidebar.jsx'
@@ -21,6 +22,8 @@ export default function ChatHome() {
 
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
+
+  useHeartbeat(user.id)
 
   useEffect(() => {
     refreshLists()
@@ -73,6 +76,19 @@ export default function ChatHome() {
     setSelectedThread({ id: thread.id, name: otherName })
   }
 
+  function handleServerRenamed(updated) {
+    setServers((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
+  }
+
+  function handleServerDeleted(serverId) {
+    setServers((prev) => prev.filter((s) => s.id !== serverId))
+    if (selectedServerId === serverId) {
+      setSelectedServerId(null)
+      setSelectedChannel(null)
+      setView('dms')
+    }
+  }
+
   const selectedServer = servers.find((s) => s.id === selectedServerId) || null
 
   return (
@@ -93,6 +109,8 @@ export default function ChatHome() {
           selectedChannelId={selectedChannel?.id}
           onSelectChannel={(id, name) => setSelectedChannel({ id, name })}
           onDMMember={handleDMMember}
+          onServerRenamed={handleServerRenamed}
+          onServerDeleted={handleServerDeleted}
         />
       )}
 

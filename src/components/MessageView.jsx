@@ -1,9 +1,63 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
-import { listMessages, postMessage, subscribeToMessages } from '../chatApi.js'
+import { deleteMessage, listMessages, postMessage, subscribeToMessages, updateMessage } from '../chatApi.js'
+import InitialsAvatar from './InitialsAvatar.jsx'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
+function Message({ message, isOwn, onSaveEdit, onDelete }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(message.content)
+
+  function startEdit() {
+    setDraft(message.content)
+    setEditing(true)
+  }
+
+  function save() {
+    const content = draft.trim()
+    setEditing(false)
+    if (!content || content === message.content) return
+    onSaveEdit(message.id, content)
+  }
+
+  return (
+    <div className={isOwn ? 'nc-message nc-message-own' : 'nc-message'}>
+      {!isOwn && <InitialsAvatar name={message.authorName} size={30} />}
+      <div className="nc-message-body">
+        <div className="nc-message-meta">
+          <span className="nc-message-author">{message.authorName}</span>
+          <span className="nc-message-time">{formatTime(message.createdAt)}</span>
+          {message.edited && <span className="nc-message-edited">(edited)</span>}
+        </div>
+        {editing ? (
+          <input
+            className="nc-message-edit-input"
+            value={draft}
+            autoFocus
+            maxLength={2000}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={save}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+              if (e.key === 'Escape') setEditing(false)
+            }}
+          />
+        ) : (
+          <div className="nc-message-content">{message.content}</div>
+        )}
+        {isOwn && !editing && (
+          <div className="nc-message-actions">
+            <button type="button" onClick={startEdit}>Edit</button>
+            <button type="button" onClick={() => onDelete(message.id)}>Delete</button>
+          </div>
+        )}
+      </div>
+      {isOwn && <InitialsAvatar name={message.authorName} size={30} />}
+    </div>
+  )
 }
 
 // The message list + composer for whichever conversation is selected
@@ -12,7 +66,8 @@ function formatTime(iso) {
 // conversationId, then stays live via a single site-wide subscription
 // filtered client-side to this conversation — see the comment on
 // subscribeToMessages in chatApi.js for why it's site-wide rather than
-// per-conversation.
+// per-conversation. Edits sync live the same way; deletes only remove
+// from the deleter's own view (see deleteMessage's comment in chatApi.js).
 export default function MessageView({ conversationId, title }) {
   const { user } = useAuth()
   const [messages, setMessages] = useState([])
@@ -42,7 +97,7 @@ export default function MessageView({ conversationId, title }) {
   useEffect(() => {
     const unsubscribe = subscribeToMessages((message) => {
       if (message.conversationId !== conversationId) return
-      if (seenIds.current.has(message.id)) return // our own optimistic add already has it
+      if (seenIds.current.has(message.id)) return // our own optimistic add/edit already has it
       seenIds.current.add(message.id)
       setMessages((prev) => [...prev, message])
     })
@@ -73,6 +128,17 @@ export default function MessageView({ conversationId, title }) {
     }
   }
 
+  async function handleSaveEdit(id, content) {
+    const updated = await updateMessage(id, content)
+    if (updated) setMessages((prev) => prev.map((m) => (m.id === id ? updated : m)))
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this message?')) return
+    await deleteMessage(id)
+    setMessages((prev) => prev.filter((m) => m.id !== id))
+  }
+
   return (
     <div className="nc-message-view">
       <div className="nc-message-header">
@@ -85,13 +151,13 @@ export default function MessageView({ conversationId, title }) {
           <p className="nc-message-hint">No messages yet — say something.</p>
         )}
         {messages.map((m) => (
-          <div key={m.id} className={m.authorId === user.id ? 'nc-message nc-message-own' : 'nc-message'}>
-            <div className="nc-message-meta">
-              <span className="nc-message-author">{m.authorName}</span>
-              <span className="nc-message-time">{formatTime(m.createdAt)}</span>
-            </div>
-            <div className="nc-message-content">{m.content}</div>
-          </div>
+          <Message
+            key={m.id}
+            message={m}
+            isOwn={m.authorId === user.id}
+            onSaveEdit={handleSaveEdit}
+            onDelete={handleDelete}
+          />
         ))}
         <div ref={bottomRef} />
       </div>
