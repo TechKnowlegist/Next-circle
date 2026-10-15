@@ -1,0 +1,16 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ncChatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c463" />
+      <stop offset="50%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M15 25 h70 a8 8 0 0 1 8 8 v34 a8 8 0 0 1 -8 8 h-42 l-18 16 v-16 h-10 a8 8 0 0 1 -8 -8 v-34 a8 8 0 0 1 8 -8 z"
+    fill="none"
+    stroke="url(#ncChatGradient)"
+    stroke-width="5"
+    stroke-linejoin="round"
+  />
+</svg>
