@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import { createServer, getOrCreateDMThread, joinServerByInviteCode, listMyDMThreads, listMyServers } from '../chatApi.js'
 import { useHeartbeat } from '../useHeartbeat.js'
+import { useMessageSound } from '../useMessageSound.js'
 import ServerRail from '../components/ServerRail.jsx'
 import ServerSidebar from '../components/ServerSidebar.jsx'
 import DMSidebar from '../components/DMSidebar.jsx'
 import MessageView from '../components/MessageView.jsx'
 import CreateServerModal from '../components/CreateServerModal.jsx'
 import JoinServerModal from '../components/JoinServerModal.jsx'
+import CallOverlay from '../components/CallOverlay.jsx'
 
 export default function ChatHome() {
   const { user, logout } = useAuth()
@@ -23,7 +25,14 @@ export default function ChatHome() {
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
 
+  // 'idle' | 'incoming' | 'active' — see CallOverlay.jsx for what each
+  // phase renders. This is a UI-only mock (no real mic/camera/connection),
+  // triggered here by the "Test Call" button for trying out the call
+  // experience before any real calling backend exists.
+  const [callStatus, setCallStatus] = useState('idle')
+
   useHeartbeat(user.id)
+  useMessageSound(user.id)
 
   useEffect(() => {
     refreshLists()
@@ -126,7 +135,17 @@ export default function ChatHome() {
       <div className="nc-main">
         <div className="nc-topbar">
           <span className="nc-whoami">Signed in as {user.name}</span>
-          <button type="button" className="nc-btn nc-btn-text" onClick={logout}>Sign Out</button>
+          <div className="nc-topbar-actions">
+            <button
+              type="button"
+              className="nc-btn nc-btn-text"
+              onClick={() => setCallStatus('incoming')}
+              disabled={callStatus !== 'idle'}
+            >
+              Test Call
+            </button>
+            <button type="button" className="nc-btn nc-btn-text" onClick={logout}>Sign Out</button>
+          </div>
         </div>
 
         {view === 'server' && !selectedServer && !loadingLists && (
@@ -154,6 +173,13 @@ export default function ChatHome() {
 
       {showCreate && <CreateServerModal onCreate={handleCreateServer} onClose={() => setShowCreate(false)} />}
       {showJoin && <JoinServerModal onJoin={handleJoinServer} onClose={() => setShowJoin(false)} />}
+
+      <CallOverlay
+        status={callStatus}
+        onAccept={() => setCallStatus('active')}
+        onDecline={() => setCallStatus('idle')}
+        onEnd={() => setCallStatus('idle')}
+      />
     </div>
   )
 }
