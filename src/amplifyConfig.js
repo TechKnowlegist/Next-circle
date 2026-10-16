@@ -39,4 +39,14 @@ export const amplifyConfig = {
       defaultAuthMode: 'userPool',
     },
   },
+  // Same shared bucket Nextlayer3D's storage.js uses — needed for profile
+  // avatar/banner uploads (see profileApi.js). Without this block,
+  // uploadData/getUrl/remove from aws-amplify/storage have no bucket to
+  // target at all and throw "Missing bucket name while accessing object."
+  Storage: {
+    S3: {
+      bucket: 'amplify-tasker-gavin-sand-nextlayerbuildplatemodel-2blnfxpm7rog',
+      region: 'us-east-1',
+    },
+  },
 }
