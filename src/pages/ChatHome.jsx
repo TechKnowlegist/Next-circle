@@ -162,7 +162,7 @@ export default function ChatHome() {
           </div>
         )}
         {view === 'dms' && selectedThread && (
-          <MessageView conversationId={selectedThread.id} title={`@ ${selectedThread.name}`} />
+          <MessageView conversationId={selectedThread.id} title={`@ ${selectedThread.name}`} isDM />
         )}
         {view === 'dms' && !selectedThread && (
           <div className="nc-empty-state">

@@ -7,9 +7,16 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
-function Message({ message, isOwn, onSaveEdit, onDelete }) {
+// Channels show every message the same way, left-aligned, like a normal
+// chat log (Discord/Slack-style) — only DMs get the iMessage-style
+// left/right bubble split, since that's what actually helps there with
+// just two people. Without this, a channel where you're the only one
+// who's posted so far has every message pinned to the right edge, which
+// reads as broken rather than as a two-person conversation.
+function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(message.content)
+  const rightAlign = isOwn && bubbleStyle
 
   function startEdit() {
     setDraft(message.content)
@@ -24,8 +31,8 @@ function Message({ message, isOwn, onSaveEdit, onDelete }) {
   }
 
   return (
-    <div className={isOwn ? 'nc-message nc-message-own' : 'nc-message'}>
-      {!isOwn && <InitialsAvatar name={message.authorName} size={30} />}
+    <div className={rightAlign ? 'nc-message nc-message-own' : 'nc-message'}>
+      {!rightAlign && <InitialsAvatar name={message.authorName} size={30} />}
       <div className="nc-message-body">
         <div className="nc-message-meta">
           <span className="nc-message-author">{message.authorName}</span>
@@ -55,20 +62,22 @@ function Message({ message, isOwn, onSaveEdit, onDelete }) {
           </div>
         )}
       </div>
-      {isOwn && <InitialsAvatar name={message.authorName} size={30} />}
+      {rightAlign && <InitialsAvatar name={message.authorName} size={30} />}
     </div>
   )
 }
 
 // The message list + composer for whichever conversation is selected
-// (a channel or a DM thread — the caller just passes a conversationId,
-// this component doesn't care which kind it is). Loads history once per
-// conversationId, then stays live via a single site-wide subscription
-// filtered client-side to this conversation — see the comment on
-// subscribeToMessages in chatApi.js for why it's site-wide rather than
-// per-conversation. Edits sync live the same way; deletes only remove
-// from the deleter's own view (see deleteMessage's comment in chatApi.js).
-export default function MessageView({ conversationId, title }) {
+// (a channel or a DM thread). Loads history once per conversationId, then
+// stays live via a single site-wide subscription filtered client-side to
+// this conversation — see the comment on subscribeToMessages in
+// chatApi.js for why it's site-wide rather than per-conversation. Edits
+// sync live the same way; deletes only remove from the deleter's own view
+// (see deleteMessage's comment in chatApi.js).
+//
+// isDM switches on the bubble (left/right) layout — see the comment on
+// Message above for why that's DM-only.
+export default function MessageView({ conversationId, title, isDM = false }) {
   const { user } = useAuth()
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
@@ -155,6 +164,7 @@ export default function MessageView({ conversationId, title }) {
             key={m.id}
             message={m}
             isOwn={m.authorId === user.id}
+            bubbleStyle={isDM}
             onSaveEdit={handleSaveEdit}
             onDelete={handleDelete}
           />
