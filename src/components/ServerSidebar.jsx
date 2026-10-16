@@ -10,6 +10,8 @@ import {
   renameServer,
 } from '../chatApi.js'
 import InitialsAvatar from './InitialsAvatar.jsx'
+import ProfileCard from './ProfileCard.jsx'
+import ProfileEditModal from './ProfileEditModal.jsx'
 
 const MEMBER_REFRESH_MS = 20_000
 
@@ -30,6 +32,8 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
   const [renaming, setRenaming] = useState(false)
   const [nameDraft, setNameDraft] = useState(server.name)
   const [busy, setBusy] = useState(false)
+  const [profileTarget, setProfileTarget] = useState(null) // { userId, name }
+  const [editingProfile, setEditingProfile] = useState(false)
 
   useEffect(() => {
     setNameDraft(server.name)
@@ -180,12 +184,19 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
           <div key={m.id} className="nc-member-row">
             <button
               type="button"
+              className="nc-avatar-btn"
+              onClick={() => setProfileTarget({ userId: m.userId, name: m.userName })}
+              title={`View ${m.userName}'s profile`}
+            >
+              <InitialsAvatar name={m.userName} size={22} />
+            </button>
+            <button
+              type="button"
               className="nc-member"
               disabled={m.userId === user.id}
               onClick={() => onDMMember(m.userId, m.userName)}
               title={m.userId === user.id ? 'This is you' : `Message ${m.userName}`}
             >
-              <InitialsAvatar name={m.userName} size={22} />
               <span className={isOnline(m) ? 'nc-member-dot online' : 'nc-member-dot'} />
               {m.userName}
             </button>
@@ -197,6 +208,22 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
           </div>
         ))}
       </div>
+
+      {profileTarget && !editingProfile && (
+        <ProfileCard
+          userId={profileTarget.userId}
+          displayName={profileTarget.name}
+          isSelf={profileTarget.userId === user.id}
+          onClose={() => setProfileTarget(null)}
+          onEdit={() => setEditingProfile(true)}
+        />
+      )}
+      {editingProfile && (
+        <ProfileEditModal
+          onClose={() => setEditingProfile(false)}
+          onSaved={() => setProfileTarget(null)}
+        />
+      )}
     </div>
   )
 }

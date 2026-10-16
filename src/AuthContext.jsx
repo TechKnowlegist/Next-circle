@@ -6,18 +6,20 @@ import {
   signUp,
   confirmSignUp,
   signOut,
+  updateUserAttributes,
 } from 'aws-amplify/auth'
 
 const AuthContext = createContext(null)
 
 // Shown everywhere instead of a raw email — reuses whatever username the
 // user already set on the main Nextlayer3D site (preferred_username is a
-// real Cognito attribute, shared across every site on this user pool),
-// falling back to the email's local part if they never set one.
+// real Cognito attribute, shared across every site on this user pool).
+// Deliberately does NOT fall back to any part of the email — someone's
+// email is never shown publicly anywhere in Next Circle, set a username
+// or not.
 export function displayNameFor(attrs) {
   if (!attrs) return 'Anonymous'
   if (attrs.preferred_username) return attrs.preferred_username
-  if (attrs.email) return attrs.email.split('@')[0]
   return 'Anonymous'
 }
 
@@ -87,9 +89,26 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Updates the shared preferred_username attribute (not a Next-Circle-only
+  // field — see the comment on ChatUserProfile in amplify/data/resource.ts
+  // for why), then reloads so `user.name` reflects it immediately.
+  // Passing an empty string clears it back to no username set.
+  async function updateUsername(newUsername) {
+    try {
+      await updateUserAttributes({
+        userAttributes: { preferred_username: newUsername },
+      })
+      await load()
+      return { success: true }
+    } catch (err) {
+      console.log('Next Circle — updating username failed:', err)
+      return { success: false, error: err instanceof Error ? err.message : 'Could not update username' }
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, confirmRegistration, logout }}
+      value={{ user, loading, login, register, confirmRegistration, logout, updateUsername }}
     >
       {children}
     </AuthContext.Provider>

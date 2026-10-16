@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import { deleteMessage, listMessages, postMessage, subscribeToMessages, updateMessage } from '../chatApi.js'
 import InitialsAvatar from './InitialsAvatar.jsx'
+import ProfileCard from './ProfileCard.jsx'
+import ProfileEditModal from './ProfileEditModal.jsx'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -13,7 +15,7 @@ function formatTime(iso) {
 // just two people. Without this, a channel where you're the only one
 // who's posted so far has every message pinned to the right edge, which
 // reads as broken rather than as a two-person conversation.
-function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete }) {
+function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete, onOpenProfile }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(message.content)
   const rightAlign = isOwn && bubbleStyle
@@ -30,12 +32,22 @@ function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete }) {
     onSaveEdit(message.id, content)
   }
 
+  function openProfile() {
+    onOpenProfile(message.authorId, message.authorName)
+  }
+
   return (
     <div className={rightAlign ? 'nc-message nc-message-own' : 'nc-message'}>
-      {!rightAlign && <InitialsAvatar name={message.authorName} size={30} />}
+      {!rightAlign && (
+        <button type="button" className="nc-avatar-btn" onClick={openProfile}>
+          <InitialsAvatar name={message.authorName} size={30} />
+        </button>
+      )}
       <div className="nc-message-body">
         <div className="nc-message-meta">
-          <span className="nc-message-author">{message.authorName}</span>
+          <button type="button" className="nc-message-author" onClick={openProfile}>
+            {message.authorName}
+          </button>
           <span className="nc-message-time">{formatTime(message.createdAt)}</span>
           {message.edited && <span className="nc-message-edited">(edited)</span>}
         </div>
@@ -62,7 +74,11 @@ function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete }) {
           </div>
         )}
       </div>
-      {rightAlign && <InitialsAvatar name={message.authorName} size={30} />}
+      {rightAlign && (
+        <button type="button" className="nc-avatar-btn" onClick={openProfile}>
+          <InitialsAvatar name={message.authorName} size={30} />
+        </button>
+      )}
     </div>
   )
 }
@@ -83,8 +99,14 @@ export default function MessageView({ conversationId, title, isDM = false }) {
   const [draft, setDraft] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [profileTarget, setProfileTarget] = useState(null) // { userId, name }
+  const [editingProfile, setEditingProfile] = useState(false)
   const bottomRef = useRef(null)
   const seenIds = useRef(new Set())
+
+  function openProfile(userId, name) {
+    setProfileTarget({ userId, name })
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -167,6 +189,7 @@ export default function MessageView({ conversationId, title, isDM = false }) {
             bubbleStyle={isDM}
             onSaveEdit={handleSaveEdit}
             onDelete={handleDelete}
+            onOpenProfile={openProfile}
           />
         ))}
         <div ref={bottomRef} />
@@ -184,6 +207,22 @@ export default function MessageView({ conversationId, title, isDM = false }) {
           Send
         </button>
       </form>
+
+      {profileTarget && !editingProfile && (
+        <ProfileCard
+          userId={profileTarget.userId}
+          displayName={profileTarget.name}
+          isSelf={profileTarget.userId === user.id}
+          onClose={() => setProfileTarget(null)}
+          onEdit={() => setEditingProfile(true)}
+        />
+      )}
+      {editingProfile && (
+        <ProfileEditModal
+          onClose={() => setEditingProfile(false)}
+          onSaved={() => setProfileTarget(null)}
+        />
+      )}
     </div>
   )
 }

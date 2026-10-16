@@ -10,6 +10,9 @@ import MessageView from '../components/MessageView.jsx'
 import CreateServerModal from '../components/CreateServerModal.jsx'
 import JoinServerModal from '../components/JoinServerModal.jsx'
 import CallOverlay from '../components/CallOverlay.jsx'
+import InitialsAvatar from '../components/InitialsAvatar.jsx'
+import ProfileCard from '../components/ProfileCard.jsx'
+import ProfileEditModal from '../components/ProfileEditModal.jsx'
 
 export default function ChatHome() {
   const { user, logout } = useAuth()
@@ -30,6 +33,9 @@ export default function ChatHome() {
   // triggered here by the "Test Call" button for trying out the call
   // experience before any real calling backend exists.
   const [callStatus, setCallStatus] = useState('idle')
+
+  const [showOwnProfile, setShowOwnProfile] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
 
   useHeartbeat(user.id)
   useMessageSound(user.id)
@@ -136,6 +142,9 @@ export default function ChatHome() {
         <div className="nc-topbar">
           <span className="nc-whoami">Signed in as {user.name}</span>
           <div className="nc-topbar-actions">
+            <button type="button" className="nc-profile-btn" onClick={() => setShowOwnProfile(true)} title="Your profile">
+              <InitialsAvatar name={user.name} size={26} />
+            </button>
             <button
               type="button"
               className="nc-btn nc-btn-text"
@@ -180,6 +189,22 @@ export default function ChatHome() {
         onDecline={() => setCallStatus('idle')}
         onEnd={() => setCallStatus('idle')}
       />
+
+      {showOwnProfile && !editingProfile && (
+        <ProfileCard
+          userId={user.id}
+          displayName={user.name}
+          isSelf
+          onClose={() => setShowOwnProfile(false)}
+          onEdit={() => setEditingProfile(true)}
+        />
+      )}
+      {editingProfile && (
+        <ProfileEditModal
+          onClose={() => setEditingProfile(false)}
+          onSaved={() => setShowOwnProfile(false)}
+        />
+      )}
     </div>
   )
 }
