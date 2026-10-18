@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { subscribeToMessages } from './chatApi.js'
+import { isSoundMuted } from './settingsPrefs.js'
 import messageToneUrl from './assets/sounds/message-tone.mp3'
 
 // Site-wide, independent of whichever conversation is open — plays the
@@ -19,6 +20,7 @@ export function useMessageSound(myUserId) {
   useEffect(() => {
     const unsubscribe = subscribeToMessages((message) => {
       if (message.authorId === myUserId) return
+      if (isSoundMuted()) return
       audioRef.current?.play().catch(() => {})
     })
     return unsubscribe

@@ -18,6 +18,14 @@ export function invalidateAvatarCache(userId) {
   inflight.delete(userId)
 }
 
+// Settings > Advanced "Clear cached avatars" — drops every resolved
+// picture for this tab, so any still-mounted UserAvatar re-queries on its
+// next remount/userId change instead of trusting what might be stale.
+export function clearAvatarCache() {
+  avatarCache.clear()
+  inflight.clear()
+}
+
 function resolveAvatarUrl(userId) {
   if (avatarCache.has(userId)) return Promise.resolve(avatarCache.get(userId))
   if (inflight.has(userId)) return inflight.get(userId)

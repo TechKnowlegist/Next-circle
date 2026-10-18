@@ -145,8 +145,8 @@ export default function ChatHome() {
             <button type="button" className="nc-profile-btn" onClick={() => setShowOwnProfile(true)} title="Your profile">
               <UserAvatar userId={user.id} name={user.name} size={26} />
             </button>
-            <button type="button" className="nc-btn nc-btn-text" onClick={() => setSettingsSection('account')}>
-              Settings
+            <button type="button" className="nc-gear-btn" onClick={() => setSettingsSection('account')} title="Settings">
+              ⚙️
             </button>
             <button
               type="button"
