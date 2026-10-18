@@ -12,8 +12,7 @@ import JoinServerModal from '../components/JoinServerModal.jsx'
 import CallOverlay from '../components/CallOverlay.jsx'
 import UserAvatar from '../components/UserAvatar.jsx'
 import ProfileCard from '../components/ProfileCard.jsx'
-import ProfileEditModal from '../components/ProfileEditModal.jsx'
-import AppearanceModal from '../components/AppearanceModal.jsx'
+import SettingsScreen from '../components/SettingsScreen.jsx'
 
 export default function ChatHome() {
   const { user, logout } = useAuth()
@@ -36,8 +35,7 @@ export default function ChatHome() {
   const [callStatus, setCallStatus] = useState('idle')
 
   const [showOwnProfile, setShowOwnProfile] = useState(false)
-  const [editingProfile, setEditingProfile] = useState(false)
-  const [showAppearance, setShowAppearance] = useState(false)
+  const [settingsSection, setSettingsSection] = useState(null) // null | 'account' | 'profile' | 'appearance'
 
   useHeartbeat(user.id)
   useMessageSound(user.id)
@@ -147,8 +145,8 @@ export default function ChatHome() {
             <button type="button" className="nc-profile-btn" onClick={() => setShowOwnProfile(true)} title="Your profile">
               <UserAvatar userId={user.id} name={user.name} size={26} />
             </button>
-            <button type="button" className="nc-btn nc-btn-text" onClick={() => setShowAppearance(true)}>
-              Appearance
+            <button type="button" className="nc-btn nc-btn-text" onClick={() => setSettingsSection('account')}>
+              Settings
             </button>
             <button
               type="button"
@@ -195,22 +193,24 @@ export default function ChatHome() {
         onEnd={() => setCallStatus('idle')}
       />
 
-      {showOwnProfile && !editingProfile && (
+      {showOwnProfile && !settingsSection && (
         <ProfileCard
           userId={user.id}
           displayName={user.name}
           isSelf
           onClose={() => setShowOwnProfile(false)}
-          onEdit={() => setEditingProfile(true)}
+          onEdit={() => setSettingsSection('profile')}
         />
       )}
-      {editingProfile && (
-        <ProfileEditModal
-          onClose={() => setEditingProfile(false)}
-          onSaved={() => setShowOwnProfile(false)}
+      {settingsSection && (
+        <SettingsScreen
+          initialSection={settingsSection}
+          onClose={() => {
+            setSettingsSection(null)
+            setShowOwnProfile(false)
+          }}
         />
       )}
-      {showAppearance && <AppearanceModal onClose={() => setShowAppearance(false)} />}
     </div>
   )
 }

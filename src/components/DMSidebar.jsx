@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
-import ProfileEditModal from './ProfileEditModal.jsx'
+import SettingsScreen from './SettingsScreen.jsx'
 
 export default function DMSidebar({ threads, selectedThreadId, onSelectThread, myUserId }) {
   const [profileTarget, setProfileTarget] = useState(null) // { userId, name }
-  const [editingProfile, setEditingProfile] = useState(false)
+  const [settingsSection, setSettingsSection] = useState(null)
 
   return (
     <div className="nc-sidebar">
@@ -44,19 +44,22 @@ export default function DMSidebar({ threads, selectedThreadId, onSelectThread, m
         })}
       </div>
 
-      {profileTarget && !editingProfile && (
+      {profileTarget && !settingsSection && (
         <ProfileCard
           userId={profileTarget.userId}
           displayName={profileTarget.name}
           isSelf={profileTarget.userId === myUserId}
           onClose={() => setProfileTarget(null)}
-          onEdit={() => setEditingProfile(true)}
+          onEdit={() => setSettingsSection('profile')}
         />
       )}
-      {editingProfile && (
-        <ProfileEditModal
-          onClose={() => setEditingProfile(false)}
-          onSaved={() => setProfileTarget(null)}
+      {settingsSection && (
+        <SettingsScreen
+          initialSection={settingsSection}
+          onClose={() => {
+            setSettingsSection(null)
+            setProfileTarget(null)
+          }}
         />
       )}
     </div>

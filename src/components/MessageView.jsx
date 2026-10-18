@@ -3,7 +3,7 @@ import { useAuth } from '../AuthContext.jsx'
 import { deleteMessage, listMessages, postMessage, subscribeToMessages, updateMessage } from '../chatApi.js'
 import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
-import ProfileEditModal from './ProfileEditModal.jsx'
+import SettingsScreen from './SettingsScreen.jsx'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -100,7 +100,7 @@ export default function MessageView({ conversationId, title, isDM = false }) {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [profileTarget, setProfileTarget] = useState(null) // { userId, name }
-  const [editingProfile, setEditingProfile] = useState(false)
+  const [settingsSection, setSettingsSection] = useState(null)
   const bottomRef = useRef(null)
   const seenIds = useRef(new Set())
 
@@ -208,19 +208,22 @@ export default function MessageView({ conversationId, title, isDM = false }) {
         </button>
       </form>
 
-      {profileTarget && !editingProfile && (
+      {profileTarget && !settingsSection && (
         <ProfileCard
           userId={profileTarget.userId}
           displayName={profileTarget.name}
           isSelf={profileTarget.userId === user.id}
           onClose={() => setProfileTarget(null)}
-          onEdit={() => setEditingProfile(true)}
+          onEdit={() => setSettingsSection('profile')}
         />
       )}
-      {editingProfile && (
-        <ProfileEditModal
-          onClose={() => setEditingProfile(false)}
-          onSaved={() => setProfileTarget(null)}
+      {settingsSection && (
+        <SettingsScreen
+          initialSection={settingsSection}
+          onClose={() => {
+            setSettingsSection(null)
+            setProfileTarget(null)
+          }}
         />
       )}
     </div>

@@ -11,7 +11,7 @@ import {
 } from '../chatApi.js'
 import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
-import ProfileEditModal from './ProfileEditModal.jsx'
+import SettingsScreen from './SettingsScreen.jsx'
 
 const MEMBER_REFRESH_MS = 20_000
 
@@ -33,7 +33,7 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
   const [nameDraft, setNameDraft] = useState(server.name)
   const [busy, setBusy] = useState(false)
   const [profileTarget, setProfileTarget] = useState(null) // { userId, name }
-  const [editingProfile, setEditingProfile] = useState(false)
+  const [settingsSection, setSettingsSection] = useState(null)
 
   useEffect(() => {
     setNameDraft(server.name)
@@ -209,19 +209,22 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
         ))}
       </div>
 
-      {profileTarget && !editingProfile && (
+      {profileTarget && !settingsSection && (
         <ProfileCard
           userId={profileTarget.userId}
           displayName={profileTarget.name}
           isSelf={profileTarget.userId === user.id}
           onClose={() => setProfileTarget(null)}
-          onEdit={() => setEditingProfile(true)}
+          onEdit={() => setSettingsSection('profile')}
         />
       )}
-      {editingProfile && (
-        <ProfileEditModal
-          onClose={() => setEditingProfile(false)}
-          onSaved={() => setProfileTarget(null)}
+      {settingsSection && (
+        <SettingsScreen
+          initialSection={settingsSection}
+          onClose={() => {
+            setSettingsSection(null)
+            setProfileTarget(null)
+          }}
         />
       )}
     </div>
