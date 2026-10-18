@@ -468,6 +468,13 @@
   opacity: 0.85;
 }
 
+.nc-avatar-img {
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
 .nc-message-time {
   font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.35);

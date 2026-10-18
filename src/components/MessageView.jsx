@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import { deleteMessage, listMessages, postMessage, subscribeToMessages, updateMessage } from '../chatApi.js'
-import InitialsAvatar from './InitialsAvatar.jsx'
+import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
 import ProfileEditModal from './ProfileEditModal.jsx'
 
@@ -40,7 +40,7 @@ function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete, onOpenProf
     <div className={rightAlign ? 'nc-message nc-message-own' : 'nc-message'}>
       {!rightAlign && (
         <button type="button" className="nc-avatar-btn" onClick={openProfile}>
-          <InitialsAvatar name={message.authorName} size={30} />
+          <UserAvatar userId={message.authorId} name={message.authorName} size={30} />
         </button>
       )}
       <div className="nc-message-body">
@@ -76,7 +76,7 @@ function Message({ message, isOwn, bubbleStyle, onSaveEdit, onDelete, onOpenProf
       </div>
       {rightAlign && (
         <button type="button" className="nc-avatar-btn" onClick={openProfile}>
-          <InitialsAvatar name={message.authorName} size={30} />
+          <UserAvatar userId={message.authorId} name={message.authorName} size={30} />
         </button>
       )}
     </div>

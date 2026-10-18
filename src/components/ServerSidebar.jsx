@@ -9,7 +9,7 @@ import {
   removeMembership,
   renameServer,
 } from '../chatApi.js'
-import InitialsAvatar from './InitialsAvatar.jsx'
+import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
 import ProfileEditModal from './ProfileEditModal.jsx'
 
@@ -188,7 +188,7 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
               onClick={() => setProfileTarget({ userId: m.userId, name: m.userName })}
               title={`View ${m.userName}'s profile`}
             >
-              <InitialsAvatar name={m.userName} size={22} />
+              <UserAvatar userId={m.userId} name={m.userName} size={22} />
             </button>
             <button
               type="button"

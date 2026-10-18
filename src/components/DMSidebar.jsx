@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import InitialsAvatar from './InitialsAvatar.jsx'
+import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
 import ProfileEditModal from './ProfileEditModal.jsx'
 
@@ -30,7 +30,7 @@ export default function DMSidebar({ threads, selectedThreadId, onSelectThread, m
                 onClick={() => setProfileTarget({ userId: otherId, name: otherName })}
                 title={`View ${otherName}'s profile`}
               >
-                <InitialsAvatar name={otherName} size={20} />
+                <UserAvatar userId={otherId} name={otherName} size={20} />
               </button>
               <button
                 type="button"

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import InitialsAvatar from './InitialsAvatar.jsx'
 import { deleteImageKey, getProfile, upsertProfile, uploadAvatar, uploadBanner, urlForKey } from '../profileApi.js'
+import { invalidateAvatarCache } from './UserAvatar.jsx'
 
 // Avatar + banner + username, all in one form. Username writes to the
 // shared preferred_username Cognito attribute (see the comment on
@@ -72,6 +73,7 @@ export default function ProfileEditModal({ onClose, onSaved }) {
         await upsertProfile(user.id, fields)
         if (fields.avatarKey && existingAvatarKey) deleteImageKey(existingAvatarKey)
         if (fields.bannerKey && existingBannerKey) deleteImageKey(existingBannerKey)
+        if (fields.avatarKey) invalidateAvatarCache(user.id)
       }
 
       onSaved?.()
