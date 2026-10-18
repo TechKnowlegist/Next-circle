@@ -90,6 +90,19 @@
   -webkit-text-fill-color: #f87171;
 }
 
+.nc-auth-back {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 14px;
+}
+.nc-auth-back:hover {
+  color: white;
+}
+
 /* ---- App shell: rail | sidebar | main ---- */
 .nc-app {
   flex: 1;
@@ -1046,6 +1059,208 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 18px 20px 20px;
+}
+
+/* ---- Appearance (color theme picker) ---- */
+.nc-appearance {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  animation: nc-call-pop 0.2s ease;
+}
+
+.nc-appearance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.nc-appearance-header h2 {
+  font-size: 1.1rem;
+}
+
+.nc-appearance-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 18px 0 10px;
+}
+
+.nc-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.nc-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.nc-swatch:hover {
+  transform: scale(1.06);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.nc-custom-theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nc-custom-theme input[type='color'] {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+}
+.nc-custom-preview {
+  flex: 1;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+/* ---- Landing page (signed-out, shown before the auth screen) ---- */
+.nc-landing {
+  flex: 1;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 900px 500px at 20% -10%, rgba(34, 197, 94, 0.22), transparent 60%),
+    var(--surface);
+}
+
+.nc-landing-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 32px;
+}
+
+.nc-landing-logo {
+  font-weight: 800;
+  font-size: 1.15rem;
+  background: linear-gradient(90deg, var(--heading-1), var(--heading-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nc-landing-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 32px 80px;
+  flex-wrap: wrap;
+}
+
+.nc-landing-copy {
+  flex: 1 1 380px;
+  min-width: 0;
+}
+
+.nc-landing-headline {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.08;
+  margin-bottom: 18px;
+}
+
+.nc-landing-sub {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  max-width: 440px;
+  margin-bottom: 28px;
+}
+
+.nc-landing-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nc-landing-cta {
+  padding: 13px 28px;
+  font-size: 1rem;
+}
+
+.nc-landing-preview {
+  flex: 1 1 380px;
+  min-width: 320px;
+  max-width: 460px;
+  display: flex;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.nc-landing-preview-sidebar {
+  width: 150px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--line);
+  padding: 16px 12px;
+  background: var(--surface);
+}
+
+.nc-landing-preview-server {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0 0 14px 4px;
+}
+
+.nc-landing-preview-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nc-landing-preview-channels .nc-channel {
+  font-size: 0.82rem;
+  pointer-events: none;
+}
+
+.nc-landing-preview-main {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nc-landing-preview-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.nc-landing-preview-main .nc-message {
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .nc-landing-hero {
+    padding: 36px 20px 56px;
+  }
+  .nc-landing-preview {
+    min-width: 0;
+  }
 }
 
 /* ---- Small screens: stack rail + one sidebar, hide the other until picked ---- */

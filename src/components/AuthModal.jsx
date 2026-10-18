@@ -4,9 +4,9 @@ import { useAuth } from '../AuthContext.jsx'
 // Sign in / sign up / confirm — one modal, three phases. Same Cognito pool
 // as the main Nextlayer3D site, so a Nextlayer3D account logs in here too;
 // see amplifyConfig.js.
-export default function AuthModal() {
+export default function AuthModal({ initialPhase = 'login', onBack }) {
   const { login, register, confirmRegistration } = useAuth()
-  const [phase, setPhase] = useState('login') // 'login' | 'register' | 'confirm'
+  const [phase, setPhase] = useState(initialPhase) // 'login' | 'register' | 'confirm'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
@@ -47,6 +47,11 @@ export default function AuthModal() {
   return (
     <div className="nc-auth-screen">
       <div className="nc-auth-card">
+        {onBack && (
+          <button type="button" className="nc-auth-back" onClick={onBack}>
+            ← Back
+          </button>
+        )}
         <h1>Next Circle</h1>
         <p className="nc-auth-sub">Same account as nextlayer3d.app — sign in with it below.</p>
 

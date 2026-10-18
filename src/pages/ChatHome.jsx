@@ -13,6 +13,7 @@ import CallOverlay from '../components/CallOverlay.jsx'
 import UserAvatar from '../components/UserAvatar.jsx'
 import ProfileCard from '../components/ProfileCard.jsx'
 import ProfileEditModal from '../components/ProfileEditModal.jsx'
+import AppearanceModal from '../components/AppearanceModal.jsx'
 
 export default function ChatHome() {
   const { user, logout } = useAuth()
@@ -36,6 +37,7 @@ export default function ChatHome() {
 
   const [showOwnProfile, setShowOwnProfile] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [showAppearance, setShowAppearance] = useState(false)
 
   useHeartbeat(user.id)
   useMessageSound(user.id)
@@ -145,6 +147,9 @@ export default function ChatHome() {
             <button type="button" className="nc-profile-btn" onClick={() => setShowOwnProfile(true)} title="Your profile">
               <UserAvatar userId={user.id} name={user.name} size={26} />
             </button>
+            <button type="button" className="nc-btn nc-btn-text" onClick={() => setShowAppearance(true)}>
+              Appearance
+            </button>
             <button
               type="button"
               className="nc-btn nc-btn-text"
@@ -205,6 +210,7 @@ export default function ChatHome() {
           onSaved={() => setShowOwnProfile(false)}
         />
       )}
+      {showAppearance && <AppearanceModal onClose={() => setShowAppearance(false)} />}
     </div>
   )
 }
