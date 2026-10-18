@@ -8,6 +8,7 @@ import {
   listServerMembers,
   removeMembership,
   renameServer,
+  setMemberRole,
 } from '../chatApi.js'
 import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
@@ -18,10 +19,12 @@ const MEMBER_REFRESH_MS = 20_000
 // Channel list + member list for whichever server is selected. Creating a
 // channel is exposed to every member in v1 (not just the server owner) —
 // see the authorization note on ChatChannel in amplify/data/resource.ts;
-// the API itself doesn't enforce owner-only yet. Rename/delete are owner-
-// only in the UI; kick is owner-only in the UI too, though (same note)
-// the API itself would currently let any member do it.
-export default function ServerSidebar({ server, selectedChannelId, onSelectChannel, onDMMember, onServerRenamed, onServerDeleted }) {
+// the API itself doesn't enforce owner-only yet. Rename/delete and
+// promoting/demoting admins are owner-only in the UI; kicking is owner-
+// OR-admin in the UI. None of this is enforced server-side (same note on
+// ChatServerMember) — the API itself would currently let any member do
+// any of it.
+export default function ServerSidebar({ server, selectedChannelId, onSelectChannel, onDMMember, onServerRenamed, onServerDeleted, unreadCounts }) {
   const { user } = useAuth()
   const isOwner = server.ownerId === user.id
 
@@ -41,13 +44,17 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
 
   useEffect(() => {
     let cancelled = false
-    listChannels(server.id).then((items) => {
-      if (cancelled) return
-      setChannels(items)
-      if (items.length && !selectedChannelId) onSelectChannel(items[0].id, items[0].name)
-    })
+    listChannels(server.id)
+      .then((items) => {
+        if (cancelled) return
+        setChannels(items)
+        if (items.length && !selectedChannelId) onSelectChannel(items[0].id, items[0].name)
+      })
+      .catch((err) => console.log('Next Circle — failed to load channels:', err))
     function refreshMembers() {
-      listServerMembers(server.id).then((items) => !cancelled && setMembers(items))
+      listServerMembers(server.id)
+        .then((items) => !cancelled && setMembers(items))
+        .catch((err) => console.log('Next Circle — failed to load members:', err))
     }
     refreshMembers()
     const interval = setInterval(refreshMembers, MEMBER_REFRESH_MS)
@@ -117,6 +124,18 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
     setMembers((prev) => prev.filter((m) => m.id !== member.id))
   }
 
+  async function handleSetRole(member, role) {
+    const updated = await setMemberRole(member.id, role)
+    if (updated) setMembers((prev) => prev.map((m) => (m.id === member.id ? { ...m, role: updated.role } : m)))
+  }
+
+  const myMembership = members.find((m) => m.userId === user.id)
+  // Admins get the same kick button as the owner (see the schema note on
+  // ChatServerMember.role — nothing server-side actually checks this,
+  // it's UI-only, same posture as the rest of this model); promoting/
+  // demoting someone, and the owner's own badge, stay owner-only.
+  const canModerate = isOwner || myMembership?.role === 'admin'
+
   return (
     <div className="nc-sidebar">
       <div className="nc-sidebar-header">
@@ -165,6 +184,7 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
             onClick={() => onSelectChannel(c.id, c.name)}
           >
             # {c.name}
+            {unreadCounts?.[c.id] > 0 && <span className="nc-unread-badge">{unreadCounts[c.id]}</span>}
           </button>
         ))}
       </div>
@@ -199,8 +219,20 @@ export default function ServerSidebar({ server, selectedChannelId, onSelectChann
             >
               <span className={isOnline(m) ? 'nc-member-dot online' : 'nc-member-dot'} />
               {m.userName}
+              {m.role === 'owner' && <span className="nc-role-badge nc-role-owner">Owner</span>}
+              {m.role === 'admin' && <span className="nc-role-badge nc-role-admin">Admin</span>}
             </button>
-            {isOwner && m.userId !== user.id && (
+            {isOwner && m.userId !== user.id && m.role !== 'owner' && (
+              <button
+                type="button"
+                className="nc-kick-btn"
+                onClick={() => handleSetRole(m, m.role === 'admin' ? 'member' : 'admin')}
+                title={m.role === 'admin' ? `Demote ${m.userName}` : `Make ${m.userName} an admin`}
+              >
+                {m.role === 'admin' ? '▼' : '▲'}
+              </button>
+            )}
+            {canModerate && m.userId !== user.id && m.role !== 'owner' && (
               <button type="button" className="nc-kick-btn" onClick={() => handleKick(m)} title={`Remove ${m.userName}`}>
                 ✕
               </button>

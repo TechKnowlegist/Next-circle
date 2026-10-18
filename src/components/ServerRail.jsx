@@ -1,4 +1,4 @@
-export default function ServerRail({ servers, view, selectedServerId, onSelectDMs, onSelectServer, onCreate, onJoin }) {
+export default function ServerRail({ servers, view, selectedServerId, onSelectDMs, onSelectServer, onCreate, onJoin, onFriends }) {
   return (
     <nav className="nc-rail">
       <button
@@ -8,6 +8,9 @@ export default function ServerRail({ servers, view, selectedServerId, onSelectDM
         title="Direct Messages"
       >
         💬
+      </button>
+      <button type="button" className="nc-rail-icon" onClick={onFriends} title="Friends">
+        👥
       </button>
       <div className="nc-rail-divider" />
       {servers.map((s) => (

@@ -8,21 +8,23 @@ import { uploadData, getUrl, remove } from 'aws-amplify/storage'
 
 const client = generateClient()
 
+const PROFILE_FIELDS = 'id avatarKey bannerKey status statusMessage'
+
 const GET_PROFILE = /* GraphQL */ `
   query GetChatUserProfile($id: ID!) {
-    getChatUserProfile(id: $id) { id avatarKey bannerKey }
+    getChatUserProfile(id: $id) { ${PROFILE_FIELDS} }
   }
 `
 
 const CREATE_PROFILE = /* GraphQL */ `
   mutation CreateChatUserProfile($input: CreateChatUserProfileInput!) {
-    createChatUserProfile(input: $input) { id avatarKey bannerKey }
+    createChatUserProfile(input: $input) { ${PROFILE_FIELDS} }
   }
 `
 
 const UPDATE_PROFILE = /* GraphQL */ `
   mutation UpdateChatUserProfile($input: UpdateChatUserProfileInput!) {
-    updateChatUserProfile(input: $input) { id avatarKey bannerKey }
+    updateChatUserProfile(input: $input) { ${PROFILE_FIELDS} }
   }
 `
 
@@ -36,9 +38,9 @@ export async function getProfile(userId) {
   }
 }
 
-// Upserts avatarKey/bannerKey (whichever is passed) for the given user.
-// `fields` is a partial { avatarKey, bannerKey } — only the keys present
-// get written, so uploading just a new avatar doesn't touch the banner.
+// Upserts avatarKey/bannerKey/status/statusMessage (whichever are passed)
+// for the given user. `fields` is a partial — only the keys present get
+// written, so uploading just a new avatar doesn't touch anything else.
 export async function upsertProfile(userId, fields) {
   const existing = await getProfile(userId)
   if (existing) {
@@ -92,4 +94,23 @@ export async function urlForKey(key) {
     console.log('Next Circle — failed to resolve image url:', err)
     return null
   }
+}
+
+// 'online' is the implicit default — nobody ever actually writes a row
+// that says "offline" (that's still computed from heartbeat silence, see
+// isOnline() in chatApi.js); it's just what an unset/missing status reads
+// as everywhere in the UI.
+export const STATUS_OPTIONS = [
+  { value: 'online', label: 'Online', color: '#22c55e' },
+  { value: 'away', label: 'Away', color: '#facc15' },
+  { value: 'busy', label: 'Busy', color: '#f97316' },
+  { value: 'dnd', label: 'Do Not Disturb', color: '#ef4444' },
+]
+
+export function statusColor(status) {
+  return STATUS_OPTIONS.find((s) => s.value === status)?.color || STATUS_OPTIONS[0].color
+}
+
+export function setStatus(userId, status, statusMessage) {
+  return upsertProfile(userId, { status, statusMessage: statusMessage || null })
 }

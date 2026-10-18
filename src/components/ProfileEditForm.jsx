@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import InitialsAvatar from './InitialsAvatar.jsx'
-import { deleteImageKey, getProfile, upsertProfile, uploadAvatar, uploadBanner, urlForKey } from '../profileApi.js'
+import { deleteImageKey, getProfile, upsertProfile, uploadAvatar, uploadBanner, urlForKey, STATUS_OPTIONS } from '../profileApi.js'
 import { invalidateAvatarCache } from './UserAvatar.jsx'
 
 // Avatar + banner + username, all in one form. Username writes to the
@@ -23,6 +23,8 @@ export default function ProfileEditForm({ onSaved }) {
   const [avatarFile, setAvatarFile] = useState(null)
   const [bannerFile, setBannerFile] = useState(null)
   const [username, setUsername] = useState(user.name === 'Anonymous' ? '' : user.name)
+  const [status, setStatusValue] = useState('online')
+  const [statusMessage, setStatusMessage] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [savedFlash, setSavedFlash] = useState(false)
@@ -36,6 +38,8 @@ export default function ProfileEditForm({ onSaved }) {
       if (cancelled || !profile) return
       setExistingAvatarKey(profile.avatarKey || null)
       setExistingBannerKey(profile.bannerKey || null)
+      setStatusValue(profile.status || 'online')
+      setStatusMessage(profile.statusMessage || '')
       const [avatar, banner] = await Promise.all([urlForKey(profile.avatarKey), urlForKey(profile.bannerKey)])
       if (cancelled) return
       if (avatar) setAvatarPreview(avatar)
@@ -71,15 +75,13 @@ export default function ProfileEditForm({ onSaved }) {
         if (!result.success) throw new Error(result.error || 'Could not update username')
       }
 
-      const fields = {}
+      const fields = { status, statusMessage: statusMessage.trim() || null }
       if (avatarFile) fields.avatarKey = await uploadAvatar(user.id, avatarFile)
       if (bannerFile) fields.bannerKey = await uploadBanner(user.id, bannerFile)
-      if (Object.keys(fields).length > 0) {
-        await upsertProfile(user.id, fields)
-        if (fields.avatarKey && existingAvatarKey) deleteImageKey(existingAvatarKey)
-        if (fields.bannerKey && existingBannerKey) deleteImageKey(existingBannerKey)
-        if (fields.avatarKey) invalidateAvatarCache(user.id)
-      }
+      await upsertProfile(user.id, fields)
+      if (fields.avatarKey && existingAvatarKey) deleteImageKey(existingAvatarKey)
+      if (fields.bannerKey && existingBannerKey) deleteImageKey(existingBannerKey)
+      if (fields.avatarKey) invalidateAvatarCache(user.id)
 
       onSaved?.()
       setSavedFlash(true)
@@ -131,6 +133,30 @@ export default function ProfileEditForm({ onSaved }) {
           />
           <p className="nc-profile-edit-email">Signed in as {user.email} (never shown publicly)</p>
         </div>
+      </div>
+
+      <div className="nc-status-picker">
+        <p className="nc-appearance-label">Status</p>
+        <div className="nc-status-options">
+          {STATUS_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={status === opt.value ? 'nc-status-option active' : 'nc-status-option'}
+              onClick={() => setStatusValue(opt.value)}
+            >
+              <span className="nc-status-dot" style={{ background: opt.color }} />
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={statusMessage}
+          onChange={(e) => setStatusMessage(e.target.value)}
+          placeholder="Custom status message (optional)"
+          maxLength={80}
+        />
       </div>
 
       {error && <p className="nc-profile-edit-error">{error}</p>}

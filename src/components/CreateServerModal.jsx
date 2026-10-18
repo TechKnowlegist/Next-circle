@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useEscapeToClose } from '../useEscapeToClose.js'
 
 const EMOJI_CHOICES = ['💬', '🎮', '🎨', '🎵', '📚', '🛠️', '🌐', '🧪']
 
 export default function CreateServerModal({ onCreate, onClose }) {
+  useEscapeToClose(onClose)
   const [name, setName] = useState('')
   const [icon, setIcon] = useState(EMOJI_CHOICES[0])
   const [busy, setBusy] = useState(false)

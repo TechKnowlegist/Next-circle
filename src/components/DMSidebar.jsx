@@ -3,7 +3,7 @@ import UserAvatar from './UserAvatar.jsx'
 import ProfileCard from './ProfileCard.jsx'
 import SettingsScreen from './SettingsScreen.jsx'
 
-export default function DMSidebar({ threads, selectedThreadId, onSelectThread, myUserId }) {
+export default function DMSidebar({ threads, selectedThreadId, onSelectThread, myUserId, unreadCounts }) {
   const [profileTarget, setProfileTarget] = useState(null) // { userId, name }
   const [settingsSection, setSettingsSection] = useState(null)
 
@@ -38,6 +38,7 @@ export default function DMSidebar({ threads, selectedThreadId, onSelectThread, m
                 onClick={() => onSelectThread(t.id, otherName)}
               >
                 {otherName}
+                {unreadCounts?.[t.id] > 0 && <span className="nc-unread-badge">{unreadCounts[t.id]}</span>}
               </button>
             </div>
           )

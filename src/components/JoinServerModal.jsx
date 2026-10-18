@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useEscapeToClose } from '../useEscapeToClose.js'
 
 export default function JoinServerModal({ onJoin, onClose }) {
+  useEscapeToClose(onClose)
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')

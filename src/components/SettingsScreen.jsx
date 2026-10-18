@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import ProfileEditForm from './ProfileEditForm.jsx'
 import AppearanceSection from './AppearanceSection.jsx'
@@ -9,6 +9,8 @@ import {
 import { clearAvatarCache } from './UserAvatar.jsx'
 import { applyTheme, saveTheme, applyMode, saveMode, applyBackground, saveBackground } from '../theme.js'
 import { THEME_PRESETS } from '../themePresets.js'
+import { listBlocked, unblockUser } from '../chatApi.js'
+import { useEscapeToClose } from '../useEscapeToClose.js'
 
 // Full-screen settings, modeled on Yapper's own settings screen (left nav
 // grouped into USER SETTINGS / APP SETTINGS, content pane on the right).
@@ -42,6 +44,7 @@ function Toggle({ on, onClick }) {
 }
 
 export default function SettingsScreen({ initialSection = 'account', onClose }) {
+  useEscapeToClose(onClose)
   const { user, logout } = useAuth()
   const [section, setSection] = useState(initialSection)
 
@@ -50,6 +53,17 @@ export default function SettingsScreen({ initialSection = 'account', onClose }) 
   const [cacheMsg, setCacheMsg] = useState('')
   const [resetMsg, setResetMsg] = useState('')
   const [copiedDebug, setCopiedDebug] = useState(false)
+  const [blocked, setBlocked] = useState([])
+
+  useEffect(() => {
+    if (section !== 'privacy') return
+    listBlocked(user.id).then(setBlocked).catch((err) => console.log('Next Circle — failed to load blocked users:', err))
+  }, [section, user.id])
+
+  async function handleUnblock(blockId) {
+    await unblockUser(blockId)
+    setBlocked((prev) => prev.filter((b) => b.id !== blockId))
+  }
 
   function toggleSound() {
     const next = !soundMuted
@@ -156,6 +170,15 @@ export default function SettingsScreen({ initialSection = 'account', onClose }) 
               </div>
               <Toggle on={appearOffline} onClick={toggleAppearOffline} />
             </div>
+
+            <p className="nc-appearance-label">Blocked users</p>
+            {blocked.length === 0 && <p className="nc-settings-toggle-sub">You haven't blocked anyone.</p>}
+            {blocked.map((b) => (
+              <div key={b.id} className="nc-settings-toggle-row">
+                <p className="nc-settings-toggle-title">{b.blockedName}</p>
+                <button type="button" className="nc-btn" onClick={() => handleUnblock(b.id)}>Unblock</button>
+              </div>
+            ))}
           </div>
         )}
 

@@ -1,8 +1,12 @@
+import { useEscapeToClose } from '../useEscapeToClose.js'
+
 // A joke "ban" screen that pops up before actually switching to light
 // mode — requested as a bit, not a real moderation action. Nothing here
 // touches any account, role, or server; it's purely client-side theater
-// gating a CSS attribute flip.
+// gating a CSS attribute flip. Escape maps to the safe default (stay
+// dark) rather than closing to light mode.
 export default function LightModeBanModal({ onKeepDark, onGoLight }) {
+  useEscapeToClose(onKeepDark)
   return (
     <div className="nc-call-backdrop">
       <div className="nc-ban-modal">

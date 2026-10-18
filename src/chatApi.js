@@ -27,7 +27,7 @@ function randomInviteCode() {
 const LIST_MY_MEMBERSHIPS = /* GraphQL */ `
   query ListMyMemberships($filter: ModelChatServerMemberFilterInput) {
     listChatServerMembers(filter: $filter, limit: 500) {
-      items { id serverId userId userName lastSeenAt createdAt }
+      items { id serverId userId userName lastSeenAt role createdAt }
     }
   }
 `
@@ -54,15 +54,21 @@ const CREATE_SERVER = /* GraphQL */ `
 
 const CREATE_MEMBERSHIP = /* GraphQL */ `
   mutation CreateChatServerMember($input: CreateChatServerMemberInput!) {
-    createChatServerMember(input: $input) { id serverId userId userName createdAt }
+    createChatServerMember(input: $input) { id serverId userId userName role createdAt }
   }
 `
 
 const LIST_SERVER_MEMBERS = /* GraphQL */ `
   query ListServerMembers($filter: ModelChatServerMemberFilterInput) {
     listChatServerMembers(filter: $filter, limit: 500) {
-      items { id serverId userId userName lastSeenAt createdAt }
+      items { id serverId userId userName lastSeenAt role createdAt }
     }
+  }
+`
+
+const SET_MEMBER_ROLE = /* GraphQL */ `
+  mutation SetChatServerMemberRole($input: UpdateChatServerMemberInput!) {
+    updateChatServerMember(input: $input) { id role }
   }
 `
 
@@ -124,7 +130,7 @@ export async function createServer(name, ownerId, ownerName, iconEmoji) {
   if (!server) throw new Error('Could not create server')
   await client.graphql({
     query: CREATE_MEMBERSHIP,
-    variables: { input: { serverId: server.id, userId: ownerId, userName: ownerName } },
+    variables: { input: { serverId: server.id, userId: ownerId, userName: ownerName, role: 'owner' } },
   })
   return server
 }
@@ -140,7 +146,7 @@ export async function joinServerByInviteCode(code, userId, userName) {
   if (!server) throw new Error("That invite code doesn't match any server.")
   await client.graphql({
     query: CREATE_MEMBERSHIP,
-    variables: { input: { serverId: server.id, userId, userName } },
+    variables: { input: { serverId: server.id, userId, userName, role: 'member' } },
   })
   return server
 }
@@ -164,6 +170,15 @@ export async function renameServer(id, name) {
 // ChatServerMember in amplify/data/resource.ts.
 export async function removeMembership(membershipId) {
   await client.graphql({ query: DELETE_MEMBERSHIP, variables: { input: { id: membershipId } } })
+}
+
+// 'owner' | 'admin' | 'member' — UI only ever calls this for the server
+// owner promoting/demoting someone else (never themselves, never touching
+// the actual 'owner' row), same posture as the authorization note on
+// ChatServerMember.role in the schema.
+export async function setMemberRole(membershipId, role) {
+  const res = await client.graphql({ query: SET_MEMBER_ROLE, variables: { input: { id: membershipId, role } } })
+  return res.data?.updateChatServerMember
 }
 
 // Deletes a server along with its channels and memberships. Message rows
@@ -238,27 +253,34 @@ export async function createChannel(serverId, name, position = 0) {
 
 // ---- Messages ----
 
+const MESSAGE_FIELDS = `
+  id conversationId authorId authorName content edited pinned
+  attachmentKey attachmentType attachmentName createdAt
+`
+
 const LIST_MESSAGES = /* GraphQL */ `
   query ListChatMessages($filter: ModelChatMessageFilterInput) {
     listChatMessages(filter: $filter, limit: 200) {
-      items { id conversationId authorId authorName content edited createdAt }
+      items { ${MESSAGE_FIELDS} }
     }
   }
 `
 
 const CREATE_MESSAGE = /* GraphQL */ `
   mutation CreateChatMessage($input: CreateChatMessageInput!) {
-    createChatMessage(input: $input) {
-      id conversationId authorId authorName content edited createdAt
-    }
+    createChatMessage(input: $input) { ${MESSAGE_FIELDS} }
   }
 `
 
 const UPDATE_MESSAGE = /* GraphQL */ `
   mutation UpdateChatMessage($input: UpdateChatMessageInput!) {
-    updateChatMessage(input: $input) {
-      id conversationId authorId authorName content edited createdAt
-    }
+    updateChatMessage(input: $input) { ${MESSAGE_FIELDS} }
+  }
+`
+
+const SET_MESSAGE_PINNED = /* GraphQL */ `
+  mutation SetChatMessagePinned($input: UpdateChatMessageInput!) {
+    updateChatMessage(input: $input) { id pinned }
   }
 `
 
@@ -270,9 +292,7 @@ const DELETE_MESSAGE = /* GraphQL */ `
 
 const ON_CREATE_MESSAGE = /* GraphQL */ `
   subscription OnCreateChatMessage {
-    onCreateChatMessage {
-      id conversationId authorId authorName content edited createdAt
-    }
+    onCreateChatMessage { ${MESSAGE_FIELDS} }
   }
 `
 
@@ -285,11 +305,16 @@ export async function listMessages(conversationId, limit = 100) {
   return items.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).slice(-limit)
 }
 
-export async function postMessage(conversationId, authorId, authorName, content) {
-  const res = await client.graphql({
-    query: CREATE_MESSAGE,
-    variables: { input: { conversationId, authorId, authorName, content } },
-  })
+// `attachment`, if given, is { key, type, name } from uploadChatAttachment
+// below — all three are written once at send time and never touched again.
+export async function postMessage(conversationId, authorId, authorName, content, attachment) {
+  const input = { conversationId, authorId, authorName, content }
+  if (attachment) {
+    input.attachmentKey = attachment.key
+    input.attachmentType = attachment.type
+    input.attachmentName = attachment.name
+  }
+  const res = await client.graphql({ query: CREATE_MESSAGE, variables: { input } })
   return res.data?.createChatMessage
 }
 
@@ -298,6 +323,14 @@ export async function updateMessage(id, content) {
     query: UPDATE_MESSAGE,
     variables: { input: { id, content, edited: true } },
   })
+  return res.data?.updateChatMessage
+}
+
+// Any member can pin/unpin (see the field-level authorization note on
+// ChatMessage.pinned in the schema) — doesn't touch `edited`, so pinning
+// never adds an "(edited)" tag to someone else's message.
+export async function setMessagePinned(id, pinned) {
+  const res = await client.graphql({ query: SET_MESSAGE_PINNED, variables: { input: { id, pinned } } })
   return res.data?.updateChatMessage
 }
 
@@ -367,4 +400,250 @@ export async function getOrCreateDMThread(myId, myName, otherId, otherName) {
     },
   })
   return res.data?.createChatDMThread
+}
+
+// ---- Reactions ----
+
+const LIST_REACTIONS = /* GraphQL */ `
+  query ListChatMessageReactions($filter: ModelChatMessageReactionFilterInput) {
+    listChatMessageReactions(filter: $filter, limit: 1000) {
+      items { id conversationId messageId userId userName emoji createdAt }
+    }
+  }
+`
+
+const CREATE_REACTION = /* GraphQL */ `
+  mutation CreateChatMessageReaction($input: CreateChatMessageReactionInput!) {
+    createChatMessageReaction(input: $input) { id conversationId messageId userId userName emoji createdAt }
+  }
+`
+
+const DELETE_REACTION = /* GraphQL */ `
+  mutation DeleteChatMessageReaction($input: DeleteChatMessageReactionInput!) {
+    deleteChatMessageReaction(input: $input) { id }
+  }
+`
+
+// Every reaction on every message in a conversation, one query — the
+// caller groups these by messageId+emoji itself (see groupReactions
+// below) rather than this fetching per-message.
+export async function listReactions(conversationId) {
+  const res = await client.graphql({
+    query: LIST_REACTIONS,
+    variables: { filter: { conversationId: { eq: conversationId } } },
+  })
+  return res.data?.listChatMessageReactions?.items || []
+}
+
+export async function addReaction(conversationId, messageId, userId, userName, emoji) {
+  const res = await client.graphql({
+    query: CREATE_REACTION,
+    variables: { input: { conversationId, messageId, userId, userName, emoji } },
+  })
+  return res.data?.createChatMessageReaction
+}
+
+export async function removeReaction(reactionId) {
+  await client.graphql({ query: DELETE_REACTION, variables: { input: { id: reactionId } } })
+}
+
+// Turns a flat reaction list into { [messageId]: { [emoji]: { count, reactedByMe, reactionId } } }
+// — reactionId is only set when it's the current user's own reaction on
+// that emoji, since that's the one toggling off calls removeReaction with.
+export function groupReactions(reactions, myUserId) {
+  const byMessage = {}
+  for (const r of reactions) {
+    const forMessage = byMessage[r.messageId] || (byMessage[r.messageId] = {})
+    const forEmoji = forMessage[r.emoji] || (forMessage[r.emoji] = { count: 0, reactedByMe: false, reactionId: null })
+    forEmoji.count += 1
+    if (r.userId === myUserId) {
+      forEmoji.reactedByMe = true
+      forEmoji.reactionId = r.id
+    }
+  }
+  return byMessage
+}
+
+// ---- Typing indicator ----
+
+const LIST_TYPING = /* GraphQL */ `
+  query ListChatTypingSignals($filter: ModelChatTypingSignalFilterInput) {
+    listChatTypingSignals(filter: $filter, limit: 50) {
+      items { id conversationId userId userName updatedAt }
+    }
+  }
+`
+
+const CREATE_TYPING = /* GraphQL */ `
+  mutation CreateChatTypingSignal($input: CreateChatTypingSignalInput!) {
+    createChatTypingSignal(input: $input) { id conversationId userId userName updatedAt }
+  }
+`
+
+const UPDATE_TYPING = /* GraphQL */ `
+  mutation UpdateChatTypingSignal($input: UpdateChatTypingSignalInput!) {
+    updateChatTypingSignal(input: $input) { id conversationId userId userName updatedAt }
+  }
+`
+
+const DELETE_TYPING = /* GraphQL */ `
+  mutation DeleteChatTypingSignal($input: DeleteChatTypingSignalInput!) {
+    deleteChatTypingSignal(input: $input) { id }
+  }
+`
+
+const TYPING_STALE_MS = 4_000
+
+// Other people currently typing in this conversation — rows older than
+// TYPING_STALE_MS are treated as abandoned (tab closed mid-type, etc.)
+// and filtered out rather than ever being deleted server-side.
+export async function listTypingUsers(conversationId, myUserId) {
+  const res = await client.graphql({
+    query: LIST_TYPING,
+    variables: { filter: { conversationId: { eq: conversationId } } },
+  })
+  const items = res.data?.listChatTypingSignals?.items || []
+  const cutoff = Date.now() - TYPING_STALE_MS
+  return items.filter((t) => t.userId !== myUserId && new Date(t.updatedAt).getTime() > cutoff)
+}
+
+// Upserts this user's typing row for the conversation — call on a
+// debounced input handler (see useTypingSignal.js) while they have
+// unsent text. Finds-then-updates rather than a single upsert mutation
+// since this schema has no such primitive, same pattern as
+// heartbeatPresence elsewhere in this file.
+export async function touchTyping(conversationId, userId, userName) {
+  const res = await client.graphql({
+    query: LIST_TYPING,
+    variables: { filter: { conversationId: { eq: conversationId }, userId: { eq: userId } } },
+  })
+  const existing = res.data?.listChatTypingSignals?.items?.[0]
+  if (existing) {
+    await client.graphql({ query: UPDATE_TYPING, variables: { input: { id: existing.id } } })
+    return
+  }
+  await client.graphql({ query: CREATE_TYPING, variables: { input: { conversationId, userId, userName } } })
+}
+
+// Call on blur/send so the "X is typing…" line disappears immediately
+// instead of waiting out TYPING_STALE_MS.
+export async function clearTyping(conversationId, userId) {
+  const res = await client.graphql({
+    query: LIST_TYPING,
+    variables: { filter: { conversationId: { eq: conversationId }, userId: { eq: userId } } },
+  })
+  const existing = res.data?.listChatTypingSignals?.items || []
+  await Promise.all(
+    existing.map((t) => client.graphql({ query: DELETE_TYPING, variables: { input: { id: t.id } } }))
+  )
+}
+
+// ---- Friends ----
+
+const LIST_FRIEND_REQUESTS_FROM = /* GraphQL */ `
+  query ListFriendRequestsFrom($filter: ModelChatFriendRequestFilterInput) {
+    listChatFriendRequests(filter: $filter, limit: 500) {
+      items { id fromUserId fromUserName toUserId toUserName status createdAt }
+    }
+  }
+`
+
+const CREATE_FRIEND_REQUEST = /* GraphQL */ `
+  mutation CreateChatFriendRequest($input: CreateChatFriendRequestInput!) {
+    createChatFriendRequest(input: $input) { id fromUserId fromUserName toUserId toUserName status createdAt }
+  }
+`
+
+const ACCEPT_FRIEND_REQUEST = /* GraphQL */ `
+  mutation AcceptChatFriendRequest($input: UpdateChatFriendRequestInput!) {
+    updateChatFriendRequest(input: $input) { id status }
+  }
+`
+
+const DELETE_FRIEND_REQUEST = /* GraphQL */ `
+  mutation DeleteChatFriendRequest($input: DeleteChatFriendRequestInput!) {
+    deleteChatFriendRequest(input: $input) { id }
+  }
+`
+
+// Every friend request/friendship involving this user, either direction
+// — the caller (see FriendsPanel.jsx) splits these into "pending
+// incoming", "pending outgoing", and "friends" itself.
+export async function listFriendRequests(userId) {
+  const [sent, received] = await Promise.all([
+    client.graphql({ query: LIST_FRIEND_REQUESTS_FROM, variables: { filter: { fromUserId: { eq: userId } } } }),
+    client.graphql({ query: LIST_FRIEND_REQUESTS_FROM, variables: { filter: { toUserId: { eq: userId } } } }),
+  ])
+  const items = [
+    ...(sent.data?.listChatFriendRequests?.items || []),
+    ...(received.data?.listChatFriendRequests?.items || []),
+  ]
+  return items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+}
+
+export async function sendFriendRequest(fromUserId, fromUserName, toUserId, toUserName) {
+  const res = await client.graphql({
+    query: CREATE_FRIEND_REQUEST,
+    variables: { input: { fromUserId, fromUserName, toUserId, toUserName, status: 'pending' } },
+  })
+  return res.data?.createChatFriendRequest
+}
+
+export async function acceptFriendRequest(id) {
+  const res = await client.graphql({
+    query: ACCEPT_FRIEND_REQUEST,
+    variables: { input: { id, status: 'accepted' } },
+  })
+  return res.data?.updateChatFriendRequest
+}
+
+// Same mutation for declining a pending request and unfriending an
+// accepted one — both are just "this row shouldn't exist anymore".
+export async function removeFriendRequest(id) {
+  await client.graphql({ query: DELETE_FRIEND_REQUEST, variables: { input: { id } } })
+}
+
+// ---- Blocking ----
+
+const LIST_BLOCKS = /* GraphQL */ `
+  query ListChatBlocks($filter: ModelChatBlockFilterInput) {
+    listChatBlocks(filter: $filter, limit: 500) {
+      items { id blockerId blockedId blockedName createdAt }
+    }
+  }
+`
+
+const CREATE_BLOCK = /* GraphQL */ `
+  mutation CreateChatBlock($input: CreateChatBlockInput!) {
+    createChatBlock(input: $input) { id blockerId blockedId blockedName createdAt }
+  }
+`
+
+const DELETE_BLOCK = /* GraphQL */ `
+  mutation DeleteChatBlock($input: DeleteChatBlockInput!) {
+    deleteChatBlock(input: $input) { id }
+  }
+`
+
+// Who this user has blocked — one-sided, see the schema note on
+// ChatBlock. Used to filter messages/DMs client-side everywhere a message
+// list or thread list is rendered.
+export async function listBlocked(userId) {
+  const res = await client.graphql({
+    query: LIST_BLOCKS,
+    variables: { filter: { blockerId: { eq: userId } } },
+  })
+  return res.data?.listChatBlocks?.items || []
+}
+
+export async function blockUser(blockerId, blockedId, blockedName) {
+  const res = await client.graphql({
+    query: CREATE_BLOCK,
+    variables: { input: { blockerId, blockedId, blockedName } },
+  })
+  return res.data?.createChatBlock
+}
+
+export async function unblockUser(blockId) {
+  await client.graphql({ query: DELETE_BLOCK, variables: { input: { id: blockId } } })
 }
