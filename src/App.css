@@ -5,8 +5,8 @@
   font-weight: 700;
   cursor: pointer;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
-  color: white;
+  background: rgba(var(--text-rgb), 0.04);
+  color: rgb(var(--text-rgb));
   transition: transform 0.15s ease, border-color 0.2s ease, opacity 0.15s ease;
 }
 .nc-btn:hover {
@@ -24,12 +24,12 @@
 .nc-btn-text {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--text-rgb), 0.6);
   font-weight: 600;
   padding: 6px 4px;
 }
 .nc-btn-text:hover {
-  color: white;
+  color: rgb(var(--text-rgb));
 }
 
 /* ---- Auth screen ---- */
@@ -58,7 +58,7 @@
 }
 
 .nc-auth-sub {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--text-rgb), 0.6);
   font-size: 0.9rem;
   margin-bottom: 20px;
 }
@@ -74,7 +74,7 @@
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--surface);
-  color: white;
+  color: rgb(var(--text-rgb));
   font-size: 0.95rem;
 }
 
@@ -93,14 +93,14 @@
 .nc-auth-back {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--text-rgb), 0.5);
   font-size: 0.82rem;
   cursor: pointer;
   padding: 0;
   margin-bottom: 14px;
 }
 .nc-auth-back:hover {
-  color: white;
+  color: rgb(var(--text-rgb));
 }
 
 /* ---- App shell: rail | sidebar | main ---- */
@@ -129,7 +129,7 @@
   border-radius: 24px;
   border: none;
   background: var(--panel);
-  color: white;
+  color: rgb(var(--text-rgb));
   font-size: 1.2rem;
   display: grid;
   place-items: center;
@@ -183,7 +183,7 @@
   margin: -2px -4px;
 }
 .nc-renamable:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--text-rgb), 0.06);
 }
 .nc-rename-input {
   width: 100%;
@@ -193,7 +193,7 @@
   border-radius: 6px;
   border: 1px solid var(--accent-2);
   background: var(--surface);
-  color: white;
+  color: rgb(var(--text-rgb));
 }
 
 .nc-invite-btn {
@@ -201,13 +201,13 @@
   padding: 4px 10px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--text-rgb), 0.04);
+  color: rgba(var(--text-rgb), 0.7);
   cursor: pointer;
 }
 .nc-invite-btn:hover {
   border-color: var(--accent-2);
-  color: white;
+  color: rgb(var(--text-rgb));
 }
 
 .nc-danger {
@@ -223,17 +223,17 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--text-rgb), 0.4);
   margin: 14px 0 6px;
   background: none;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.4);
+  -webkit-text-fill-color: rgba(var(--text-rgb), 0.4);
 }
 
 .nc-sidebar-hint {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--text-rgb), 0.5);
   background: none;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.5);
+  -webkit-text-fill-color: rgba(var(--text-rgb), 0.5);
   line-height: 1.5;
 }
 
@@ -249,7 +249,7 @@
   text-align: left;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--text-rgb), 0.65);
   padding: 7px 10px;
   border-radius: 8px;
   cursor: pointer;
@@ -260,12 +260,12 @@
 }
 .nc-channel:hover,
 .nc-member:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: rgba(var(--text-rgb), 0.05);
+  color: rgb(var(--text-rgb));
 }
 .nc-channel.active {
   background: rgba(56, 189, 248, 0.15);
-  color: white;
+  color: rgb(var(--text-rgb));
 }
 .nc-member:disabled {
   cursor: default;
@@ -294,7 +294,7 @@
   border-radius: 6px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--text-rgb), 0.3);
   cursor: pointer;
   font-size: 0.75rem;
   display: none;
@@ -313,7 +313,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(var(--text-rgb), 0.25);
   flex-shrink: 0;
 }
 .nc-member-dot.online {
@@ -338,7 +338,7 @@
   border-radius: 8px;
   border: 1px dashed var(--line);
   background: none;
-  color: white;
+  color: rgb(var(--text-rgb));
   font-size: 0.85rem;
 }
 .nc-new-channel input:focus {
@@ -365,7 +365,7 @@
 
 .nc-whoami {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--text-rgb), 0.6);
 }
 
 .nc-topbar-actions {
@@ -392,7 +392,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--text-rgb), 0.4);
   text-align: center;
   padding: 20px;
 }
@@ -423,9 +423,9 @@
 }
 
 .nc-message-hint {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--text-rgb), 0.4);
   background: none;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.4);
+  -webkit-text-fill-color: rgba(var(--text-rgb), 0.4);
   font-size: 0.9rem;
 }
 
@@ -490,24 +490,24 @@
 
 .nc-message-time {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--text-rgb), 0.35);
 }
 
 .nc-message-edited {
   font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--text-rgb), 0.3);
   background: none;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.3);
+  -webkit-text-fill-color: rgba(var(--text-rgb), 0.3);
   font-style: italic;
 }
 
 .nc-message-content {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--text-rgb), 0.05);
   border-radius: 12px;
   padding: 9px 13px;
   font-size: 0.92rem;
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(var(--text-rgb), 0.92);
   display: inline-block;
   text-align: left;
   word-break: break-word;
@@ -523,7 +523,7 @@
   border-radius: 12px;
   border: 1px solid var(--accent-2);
   background: var(--surface);
-  color: white;
+  color: rgb(var(--text-rgb));
   font-size: 0.92rem;
 }
 
@@ -545,7 +545,7 @@
   border: none;
   padding: 0;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--text-rgb), 0.4);
   cursor: pointer;
 }
 .nc-message-actions button:hover {
@@ -565,7 +565,7 @@
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--surface);
-  color: white;
+  color: rgb(var(--text-rgb));
   font-size: 0.92rem;
 }
 .nc-composer input:focus {
@@ -658,7 +658,7 @@
 
 .nc-call-sub {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--text-rgb), 0.55);
   margin: 0;
 }
 
@@ -714,7 +714,7 @@
   right: 18px;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--text-rgb), 0.5);
   cursor: pointer;
   padding: 6px;
   display: grid;
@@ -722,8 +722,8 @@
   border-radius: 8px;
 }
 .nc-call-minimize:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.06);
+  color: rgb(var(--text-rgb));
+  background: rgba(var(--text-rgb), 0.06);
 }
 
 .nc-call-controls {
@@ -739,8 +739,8 @@
   height: 54px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: rgba(var(--text-rgb), 0.05);
+  color: rgb(var(--text-rgb));
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -792,7 +792,7 @@
   border-radius: 8px;
 }
 .nc-call-reaction-popover button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--text-rgb), 0.08);
 }
 
 .nc-call-reaction-toast {
@@ -818,7 +818,7 @@
   background: var(--panel);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
   cursor: pointer;
-  color: white;
+  color: rgb(var(--text-rgb));
   font-weight: 600;
   font-size: 0.85rem;
   z-index: 60;
@@ -1035,16 +1035,16 @@
 .nc-profile-edit-fields label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--text-rgb), 0.5);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 .nc-profile-edit-fields input {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--text-rgb), 0.05);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 10px;
-  color: white;
+  color: rgb(var(--text-rgb));
   font-size: 0.9rem;
 }
 .nc-profile-edit-fields input:focus {
@@ -1054,7 +1054,7 @@
 
 .nc-profile-edit-email {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--text-rgb), 0.4);
   margin: 2px 0 0;
 }
 
@@ -1098,7 +1098,7 @@
 .nc-appearance-label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--text-rgb), 0.5);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin: 18px 0 10px;
@@ -1120,7 +1120,7 @@
 }
 .nc-swatch:hover {
   transform: scale(1.06);
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(var(--text-rgb), 0.4);
 }
 
 .nc-custom-theme {
@@ -1142,6 +1142,83 @@
   height: 38px;
   border-radius: 8px;
   border: 1px solid var(--line);
+}
+
+.nc-mode-row {
+  display: flex;
+  gap: 10px;
+}
+.nc-mode-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(var(--text-rgb), 0.04);
+  color: rgb(var(--text-rgb));
+  font-weight: 700;
+  cursor: pointer;
+}
+.nc-mode-btn.active {
+  border-color: var(--accent-2);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.nc-bg-swatch {
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  place-items: center;
+  color: rgba(var(--text-rgb), 0.6);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.nc-bg-swatch-none {
+  background: rgba(var(--text-rgb), 0.04);
+}
+.nc-bg-upload {
+  background: rgba(var(--text-rgb), 0.04);
+  border-style: dashed;
+  font-size: 1.4rem;
+  color: rgba(var(--text-rgb), 0.5);
+}
+
+/* ---- Light mode "ban" joke modal ---- */
+.nc-ban-modal {
+  width: 100%;
+  max-width: 340px;
+  padding: 32px 28px;
+  border-radius: 20px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: var(--panel);
+  text-align: center;
+  animation: nc-call-pop 0.2s ease;
+}
+.nc-ban-emoji {
+  font-size: 2.2rem;
+  margin: 0 0 6px;
+}
+.nc-ban-modal h2 {
+  font-size: 1.3rem;
+  color: #f87171;
+  -webkit-text-fill-color: #f87171;
+  background: none;
+  margin-bottom: 6px;
+}
+.nc-ban-reason {
+  color: rgba(var(--text-rgb), 0.7);
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+.nc-ban-sub {
+  color: rgba(var(--text-rgb), 0.45);
+  font-size: 0.82rem;
+  font-style: italic;
+  margin: 0 0 22px;
+}
+.nc-ban-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* ---- Settings screen (full-screen, left nav + content pane) ---- */
@@ -1176,7 +1253,7 @@
 .nc-settings-group-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--text-rgb), 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 6px 10px;
@@ -1188,19 +1265,19 @@
   text-align: left;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--text-rgb), 0.65);
   padding: 9px 10px;
   border-radius: 8px;
   font-size: 0.9rem;
   cursor: pointer;
 }
 .nc-settings-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: rgba(var(--text-rgb), 0.05);
+  color: rgb(var(--text-rgb));
 }
 .nc-settings-nav-item.active {
   background: rgba(56, 189, 248, 0.15);
-  color: white;
+  color: rgb(var(--text-rgb));
 }
 .nc-settings-logout {
   color: #fca5a5;
@@ -1226,8 +1303,8 @@
   height: 34px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
-  color: white;
+  background: rgba(var(--text-rgb), 0.04);
+  color: rgb(var(--text-rgb));
   cursor: pointer;
 }
 .nc-settings-close:hover {
@@ -1246,7 +1323,7 @@
   font-size: 0.95rem;
   padding: 10px 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--text-rgb), 0.04);
   border: 1px solid var(--line);
   display: inline-block;
   margin-bottom: 4px;
@@ -1310,7 +1387,7 @@
 }
 
 .nc-landing-sub {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--text-rgb), 0.65);
   font-size: 1.05rem;
   line-height: 1.5;
   max-width: 440px;
@@ -1377,7 +1454,7 @@
 .nc-landing-preview-title {
   font-weight: 700;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--text-rgb), 0.6);
   margin: 0;
 }
 

@@ -6,10 +6,32 @@
   --heading-2: #a855f7;
   --panel: #0f172a;
   --surface: #0a0f1c;
-  --line: rgba(255, 255, 255, 0.08);
+  --line: rgba(var(--text-rgb), 0.08);
+  /* Every "white at X% opacity" text/border/hover-tint in App.css reads
+     this instead of a literal 255,255,255 — light mode just overrides it
+     to a dark value below, and the whole app's text flips without
+     touching each of those rules individually. */
+  --text-rgb: 255, 255, 255;
+  --body-bg: #000000;
+  --body-color: white;
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Light mode — toggled by setting data-theme="light" on <html> (see
+   theme.js). Flips the handful of variables everything else is already
+   built on: panel/surface backgrounds, the shared text-opacity variable,
+   and the page background. A few deliberately-always-dark overlay badges
+   (profile close button, avatar-change overlay, the red end-call button)
+   keep literal white text on purpose — see the comments in App.css. */
+:root[data-theme='light'] {
+  --panel: #ffffff;
+  --surface: #f1f5f9;
+  --text-rgb: 15, 23, 42;
+  --body-bg: #f8fafc;
+  --body-color: #0f172a;
+  color-scheme: light;
 }
 
 *,
@@ -21,8 +43,8 @@
 html,
 body {
   margin: 0;
-  background: #000000;
-  color: white;
+  background: var(--body-bg);
+  color: var(--body-color);
   overscroll-behavior: none;
 }
 
